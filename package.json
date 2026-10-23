@@ -1,0 +1,14 @@
+{
+  "name": "pepino",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite pepino",
+    "build": "vite build pepino --outDir ../dist --emptyOutDir",
+    "preview": "vite preview pepino"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
+}
