@@ -2,7 +2,7 @@
 document.documentElement.classList.add('js');
 
 // ==========================================================================
-// 1. Navigation Scrollspy & Active Link Indicator
+// 1. Navigation Scrollspy & Frosted Navbar
 // ==========================================================================
 (() => {
   const nav = document.getElementById('mainNav');
@@ -14,9 +14,16 @@ document.documentElement.classList.add('js');
   const onScroll = () => {
     const scrollY = window.pageYOffset || document.documentElement.scrollTop;
     
-    // Highlight active section link
+    // Frosted glass effect on scroll
+    if (scrollY > 40) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+
+    // Active link highlighting
     sections.forEach((sec) => {
-      const top = sec.offsetTop - 120;
+      const top = sec.offsetTop - 140;
       const height = sec.offsetHeight;
       const id = sec.getAttribute('id');
       
@@ -36,23 +43,23 @@ document.documentElement.classList.add('js');
 })();
 
 // ==========================================================================
-// 2. Weekly Experience Filtering
+// 2. Weekly Experience Filtering & Quick Jump
 // ==========================================================================
 (() => {
   const filterBtns = document.querySelectorAll('.filter-btn');
   const cards = document.querySelectorAll('.entry-card');
+  const jumpPills = document.querySelectorAll('.jump-pill');
 
-  if (!filterBtns.length || !cards.length) return;
+  if (!cards.length) return;
 
+  // Category Filtering
   filterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const filter = btn.dataset.filter;
 
-      // Update button active state
       filterBtns.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
 
-      // Filter cards
       cards.forEach((card) => {
         const category = card.dataset.category;
         if (filter === 'all' || category === filter) {
@@ -63,12 +70,64 @@ document.documentElement.classList.add('js');
       });
     });
   });
+
+  // Quick Jump with card highlight animation
+  jumpPills.forEach((pill) => {
+    pill.addEventListener('click', (e) => {
+      const targetId = pill.getAttribute('href')?.replace('#', '');
+      const targetCard = document.getElementById(targetId);
+      if (targetCard) {
+        // If target card is currently hidden by filter, reset to all
+        if (targetCard.classList.contains('hidden')) {
+          const allBtn = document.querySelector('.filter-btn[data-filter="all"]');
+          if (allBtn) allBtn.click();
+        }
+
+        // Trigger brief visual highlight
+        targetCard.classList.remove('jump-highlight');
+        void targetCard.offsetWidth; // Force reflow
+        targetCard.classList.add('jump-highlight');
+        setTimeout(() => {
+          targetCard.classList.remove('jump-highlight');
+        }, 1600);
+      }
+    });
+  });
 })();
 
 // ==========================================================================
-// 3. Documentation Carousel & Navigation Dots
+// 3. Documentation Gallery: Dual View (Carousel + Grid Wall)
 // ==========================================================================
 (() => {
+  // View Switcher
+  const carouselBtn = document.getElementById('viewCarouselBtn');
+  const gridBtn = document.getElementById('viewGridBtn');
+  const carouselWrap = document.getElementById('carouselWrapper');
+  const gridWrap = document.getElementById('gridWallWrapper');
+
+  if (carouselBtn && gridBtn && carouselWrap && gridWrap) {
+    carouselBtn.addEventListener('click', () => {
+      carouselBtn.classList.add('active');
+      carouselBtn.setAttribute('aria-selected', 'true');
+      gridBtn.classList.remove('active');
+      gridBtn.setAttribute('aria-selected', 'false');
+
+      carouselWrap.style.display = 'block';
+      gridWrap.style.display = 'none';
+    });
+
+    gridBtn.addEventListener('click', () => {
+      gridBtn.classList.add('active');
+      gridBtn.setAttribute('aria-selected', 'true');
+      carouselBtn.classList.remove('active');
+      carouselBtn.setAttribute('aria-selected', 'false');
+
+      carouselWrap.style.display = 'none';
+      gridWrap.style.display = 'grid';
+    });
+  }
+
+  // Carousel Slider Logic
   const track = document.querySelector('.carousel-track');
   if (!track) return;
 
@@ -107,7 +166,6 @@ document.documentElement.classList.add('js');
     if (prevBtn) prevBtn.disabled = idx === 0;
     if (nextBtn) nextBtn.disabled = idx === slides.length - 1;
 
-    // Update dots
     if (dotsContainer) {
       const dots = dotsContainer.querySelectorAll('.carousel-dot');
       dots.forEach((dot, i) => {
@@ -168,7 +226,7 @@ document.documentElement.classList.add('js');
     }, 300);
   };
 
-  // Attach to weekly entry image containers
+  // Attach to weekly entry images
   document.querySelectorAll('.entry-img-container').forEach((el) => {
     el.addEventListener('click', () => {
       const src = el.dataset.src || el.querySelector('img')?.getAttribute('src');
@@ -177,11 +235,29 @@ document.documentElement.classList.add('js');
     });
   });
 
-  // Attach to gallery slides
+  // Attach to staff spotlight
+  document.querySelectorAll('.staff-img-container').forEach((el) => {
+    el.addEventListener('click', () => {
+      const src = el.dataset.src || el.querySelector('img')?.getAttribute('src');
+      const caption = el.dataset.caption || 'Aquila Softwares Corporation Team & Interns';
+      if (src) openLightbox(src, caption);
+    });
+  });
+
+  // Attach to gallery carousel slides
   document.querySelectorAll('.slide').forEach((slide) => {
     slide.addEventListener('click', () => {
       const src = slide.dataset.src || slide.querySelector('img')?.getAttribute('src');
       const caption = slide.dataset.caption || slide.querySelector('.slide-caption')?.textContent;
+      if (src) openLightbox(src, caption);
+    });
+  });
+
+  // Attach to gallery grid items
+  document.querySelectorAll('.grid-wall-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const src = item.dataset.src || item.querySelector('img')?.getAttribute('src');
+      const caption = item.dataset.caption || item.querySelector('h4')?.textContent;
       if (src) openLightbox(src, caption);
     });
   });
@@ -197,7 +273,7 @@ document.documentElement.classList.add('js');
 })();
 
 // ==========================================================================
-// 5. Copy Contact Button with Toast Feedback
+// 5. Copy Official Address Button with Toast Feedback
 // ==========================================================================
 (() => {
   const copyBtn = document.getElementById('copyContactBtn');
@@ -216,7 +292,7 @@ document.documentElement.classList.add('js');
   };
 
   copyBtn.addEventListener('click', async () => {
-    const textToCopy = copyBtn.dataset.copy || 'D4 G/F Yolanda Bldg. Sobrecarey St, Corner Iñigo St, Bo. Obrero, Davao City, 8000 Davao del Sur, Philippines';
+    const textToCopy = copyBtn.dataset.copy || 'Aquila Softwares Corporation, ENM Building, Sampaloc St corner, 212 Dao, Matina Crossing, Davao City, 8000 Davao del Sur, Philippines';
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(textToCopy);
@@ -228,7 +304,7 @@ document.documentElement.classList.add('js');
         document.execCommand('copy');
         document.body.removeChild(input);
       }
-      showToast('Copied studio address to clipboard!');
+      showToast('Copied official company address to clipboard!');
     } catch (err) {
       showToast(`Address: ${textToCopy}`);
     }
@@ -244,22 +320,22 @@ document.documentElement.classList.add('js');
     img.addEventListener('error', () => {
       if (img.dataset.fallback) return;
       img.dataset.fallback = '1';
-      const week = img.getAttribute('src').match(/week-(\d)/)?.[1] || '';
-      const theme = img.dataset.theme || 'Technical Training Activity';
+      const week = img.getAttribute('src')?.match(/week(\d)/)?.[1] || '';
+      const theme = img.dataset.theme || 'Frontend Engineering Activity';
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#C6F135" stop-opacity="0.2"/>
-            <stop offset="100%" stop-color="#D4AF37" stop-opacity="0.15"/>
+            <stop offset="0%" stop-color="#00F2FE" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.15"/>
           </linearGradient>
         </defs>
-        <rect width="800" height="600" fill="#071510"/>
-        <rect x="24" y="24" width="752" height="552" rx="16" fill="url(#grad)" stroke="#1E4937" stroke-width="2" stroke-dasharray="10 10"/>
-        <circle cx="400" cy="220" r="44" fill="#C6F135" fill-opacity="0.15" stroke="#C6F135" stroke-width="2"/>
-        <path d="M386 220 L400 234 L418 206" fill="none" stroke="#C6F135" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="400" y="300" fill="#F0F5F2" font-family="Outfit, sans-serif" font-weight="700" font-size="32" text-anchor="middle">Week ${week} Documentation</text>
-        <text x="400" y="340" fill="#8FA79B" font-family="Plus Jakarta Sans, sans-serif" font-size="20" text-anchor="middle">${theme}</text>
-        <text x="400" y="385" fill="#C6F135" font-family="Plus Jakarta Sans, sans-serif" font-size="16" text-anchor="middle">Replace with images/week-${week}.jpg</text>
+        <rect width="800" height="600" fill="#0A0F1D"/>
+        <rect x="24" y="24" width="752" height="552" rx="16" fill="url(#grad)" stroke="#1E293B" stroke-width="2" stroke-dasharray="10 10"/>
+        <circle cx="400" cy="220" r="44" fill="#00F2FE" fill-opacity="0.15" stroke="#00F2FE" stroke-width="2"/>
+        <polyline points="386,220 398,232 418,208" fill="none" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="400" y="300" fill="#F8FAFC" font-family="'Outfit', sans-serif" font-weight="700" font-size="32" text-anchor="middle">Week ${week} Documentation</text>
+        <text x="400" y="340" fill="#94A3B8" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" text-anchor="middle">${theme}</text>
+        <text x="400" y="385" fill="#00F2FE" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" text-anchor="middle">Aquila Softwares Corporation</text>
       </svg>`;
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     });
@@ -275,10 +351,10 @@ document.documentElement.classList.add('js');
       const label = img.dataset.placeholder || 'Image Placeholder';
       const file = img.dataset.file || '';
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-        <rect width="${w}" height="${h}" fill="#071510"/>
-        <rect x="12" y="12" width="${w - 24}" height="${h - 24}" rx="12" fill="none" stroke="#1E4937" stroke-dasharray="8 8"/>
-        <text x="${w / 2}" y="${h / 2 - 8}" fill="#F0F5F2" font-family="Outfit, sans-serif" font-weight="600" font-size="22" text-anchor="middle">${label}</text>
-        <text x="${w / 2}" y="${h / 2 + 24}" fill="#C6F135" font-family="Plus Jakarta Sans, sans-serif" font-size="15" text-anchor="middle">${file}</text>
+        <rect width="${w}" height="${h}" fill="#0A0F1D"/>
+        <rect x="12" y="12" width="${w - 24}" height="${h - 24}" rx="12" fill="none" stroke="#1E293B" stroke-dasharray="8 8"/>
+        <text x="${w / 2}" y="${h / 2 - 8}" fill="#F8FAFC" font-family="'Outfit', sans-serif" font-weight="600" font-size="22" text-anchor="middle">${label}</text>
+        <text x="${w / 2}" y="${h / 2 + 24}" fill="#00F2FE" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" text-anchor="middle">${file}</text>
       </svg>`;
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     });
